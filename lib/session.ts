@@ -1,3 +1,5 @@
+import { cache } from "react"
+
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
@@ -19,7 +21,9 @@ export interface Session {
   all: PublicTrackingData
 }
 
-export async function getSession(): Promise<Session> {
+// Layout and page both call this per request; cache() keeps the clone-and-scope
+// work (and the getData() clone) to once per request instead of twice.
+export const getSession = cache(async (): Promise<Session> => {
   const raw = await getData()
   const all: PublicTrackingData = {
     ...raw,
@@ -29,7 +33,7 @@ export async function getSession(): Promise<Session> {
   const id = (await cookies()).get(USER_COOKIE)?.value
   const user = users.find((u) => u.id === id) ?? MD_USER
   return { user, users, data: scopeData(all, user), all }
-}
+})
 
 export async function requireManagement(): Promise<Session> {
   const session = await getSession()

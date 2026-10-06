@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   experimental: {
     // Room for a 10 MB attachment plus multipart overhead.
     serverActions: { bodySizeLimit: "11mb" },
+    // Every page is dynamic (per-user session data), so client nav reuses the
+    // last RSC payload for 30s instead of refetching across the EU<->BD hop.
+    staleTimes: { dynamic: 30 },
   },
 }
 
