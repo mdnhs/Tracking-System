@@ -229,7 +229,14 @@ export default async function EmployeePage({
       </div>
 
       {isSelf ? (
-        <ReportForms morning={report?.morning} evening={report?.evening} />
+        <ReportForms
+          morning={report?.morning}
+          evening={report?.evening}
+          context={{
+            employee: employee.name,
+            department: employee.department,
+          }}
+        />
       ) : (
         <p className="text-sm text-muted-foreground">
           Only {employee.name} can submit their daily reports.

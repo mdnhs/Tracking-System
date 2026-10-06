@@ -180,12 +180,24 @@ export function TaskActions({
                 reason: task.delayReason ?? "",
                 explanation: task.delayExplanation ?? "",
               }}
+              context={{
+                title: task.title,
+                project: task.project,
+                department: task.department,
+              }}
             />
           </div>
         ) : null}
 
         <div className="border-t pt-4">
-          <UpdateForm taskId={task.id} />
+          <UpdateForm
+            taskId={task.id}
+            context={{
+              title: task.title,
+              project: task.project,
+              department: task.department,
+            }}
+          />
         </div>
       </CardContent>
     </Card>

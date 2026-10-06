@@ -8,8 +8,9 @@ import {
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Controller, useForm } from "react-hook-form"
+import { Controller, useForm, useWatch } from "react-hook-form"
 
+import { AiField } from "@/components/ai-field"
 import { FormSelect, type SelectOption } from "@/components/form-select"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,13 +20,13 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import {
   addTaskUpdate,
   holdTask,
   reassignTask,
   recordDelayReason,
 } from "@/lib/actions"
+import type { AiFieldContext } from "@/lib/ai/fields"
 import {
   delayReasonSchema,
   holdSchema,
@@ -163,15 +164,18 @@ export function DelayReasonForm({
   taskId,
   reasons,
   defaultValues,
+  context,
 }: {
   taskId: string
   reasons: string[]
   defaultValues: DelayReasonValues
+  context?: AiFieldContext
 }) {
   const form = useForm<DelayReasonValues>({
     resolver: zodResolver(delayReasonSchema),
     defaultValues,
   })
+  const reason = useWatch({ control: form.control, name: "reason" })
   const items = reasons.map((r) => ({ value: r, label: r }))
 
   async function onSubmit(values: DelayReasonValues) {
@@ -201,23 +205,13 @@ export function DelayReasonForm({
             </Field>
           )}
         />
-        <Controller
-          name="explanation"
+        <AiField
           control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="delay-explanation">
-                Explanation (optional)
-              </FieldLabel>
-              <Textarea
-                {...field}
-                id="delay-explanation"
-                aria-invalid={fieldState.invalid}
-                placeholder="Short explanation of the delay"
-              />
-              <FieldError errors={[fieldState.error]} />
-            </Field>
-          )}
+          name="explanation"
+          label="Explanation (optional)"
+          placeholder="Short explanation of the delay"
+          aiField="delay-explanation"
+          context={{ ...context, reason }}
         />
         <FieldError errors={[form.formState.errors.root]} />
         <SubmitButton
@@ -231,7 +225,13 @@ export function DelayReasonForm({
   )
 }
 
-export function UpdateForm({ taskId }: { taskId: string }) {
+export function UpdateForm({
+  taskId,
+  context,
+}: {
+  taskId: string
+  context?: AiFieldContext
+}) {
   const form = useForm<TaskUpdateValues>({
     resolver: zodResolver(taskUpdateSchema),
     defaultValues: { text: "" },
@@ -249,21 +249,13 @@ export function UpdateForm({ taskId }: { taskId: string }) {
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
-        <Controller
-          name="text"
+        <AiField
           control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="update-text">Add an update</FieldLabel>
-              <Textarea
-                {...field}
-                id="update-text"
-                aria-invalid={fieldState.invalid}
-                placeholder="Progress note or comment"
-              />
-              <FieldError errors={[fieldState.error]} />
-            </Field>
-          )}
+          name="text"
+          label="Add an update"
+          placeholder="Progress note or comment"
+          aiField="task-update"
+          context={context}
         />
         <FieldError errors={[form.formState.errors.root]} />
         <SubmitButton

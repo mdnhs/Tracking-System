@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { AI_FIELDS } from "@/lib/ai/fields"
+
 export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date")
@@ -157,3 +159,20 @@ export const fetchModelsSchema = z.object({
   apiKey: apiKeyField,
 })
 export type FetchModelsValues = z.infer<typeof fetchModelsSchema>
+
+// Context is a hint for the prompt; long values are capped rather than rejected.
+const aiContextField = z.string().transform((value) => value.slice(0, 200))
+
+export const aiFieldSchema = z.object({
+  field: z.enum(AI_FIELDS),
+  context: z
+    .object({
+      title: aiContextField.optional(),
+      project: aiContextField.optional(),
+      department: aiContextField.optional(),
+      reason: aiContextField.optional(),
+      employee: aiContextField.optional(),
+    })
+    .optional(),
+})
+export type AiFieldValues = z.infer<typeof aiFieldSchema>

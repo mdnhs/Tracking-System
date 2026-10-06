@@ -4,8 +4,9 @@ import { Add01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
-import { Controller, useForm } from "react-hook-form"
+import { Controller, useForm, useWatch } from "react-hook-form"
 
+import { AiField } from "@/components/ai-field"
 import { DatePicker } from "@/components/date-picker"
 import { FormSelect } from "@/components/form-select"
 import { Button } from "@/components/ui/button"
@@ -25,7 +26,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { Textarea } from "@/components/ui/textarea"
 import { createTask } from "@/lib/actions"
 import { todayISO } from "@/lib/format"
 import { createTaskSchema, type CreateTaskValues } from "@/lib/schemas"
@@ -64,6 +64,9 @@ export function TaskCreateSheet({ employees }: { employees: Employee[] }) {
     resolver: zodResolver(createTaskSchema),
     defaultValues: emptyTask(),
   })
+  const title = useWatch({ control: form.control, name: "title" })
+  const project = useWatch({ control: form.control, name: "project" })
+  const department = useWatch({ control: form.control, name: "department" })
 
   async function onSubmit(values: CreateTaskValues) {
     const result = await createTask(values)
@@ -128,21 +131,13 @@ export function TaskCreateSheet({ employees }: { employees: Employee[] }) {
               )}
             />
 
-            <Controller
-              name="description"
+            <AiField
               control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="description">Description</FieldLabel>
-                  <Textarea
-                    {...field}
-                    id="description"
-                    aria-invalid={fieldState.invalid}
-                    placeholder="Detail of the work"
-                  />
-                  <FieldError errors={[fieldState.error]} />
-                </Field>
-              )}
+              name="description"
+              label="Description"
+              placeholder="Detail of the work"
+              aiField="task-description"
+              context={{ title, project, department }}
             />
 
             <div className="grid gap-4 sm:grid-cols-2">

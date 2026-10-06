@@ -3,14 +3,9 @@
 import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import {
-  Controller,
-  useForm,
-  type Control,
-  type FieldPath,
-  type FieldValues,
-} from "react-hook-form"
+import { useForm } from "react-hook-form"
 
+import { AiField } from "@/components/ai-field"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -19,15 +14,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { Field, FieldError, FieldGroup } from "@/components/ui/field"
 import { submitEveningReport, submitMorningReport } from "@/lib/actions"
+import type { AiFieldContext } from "@/lib/ai/fields"
 import {
   eveningReportSchema,
   morningReportSchema,
@@ -38,48 +27,6 @@ import type { EveningReport, MorningReport } from "@/lib/types"
 
 function join(items: string[] | undefined) {
   return (items ?? []).join("\n")
-}
-
-function TextField<T extends FieldValues>({
-  control,
-  name,
-  label,
-  placeholder,
-  multiline = true,
-}: {
-  control: Control<T>
-  name: FieldPath<T>
-  label: string
-  placeholder: string
-  multiline?: boolean
-}) {
-  return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field, fieldState }) => (
-        <Field data-invalid={fieldState.invalid}>
-          <FieldLabel htmlFor={name}>{label}</FieldLabel>
-          {multiline ? (
-            <Textarea
-              {...field}
-              id={name}
-              aria-invalid={fieldState.invalid}
-              placeholder={placeholder}
-            />
-          ) : (
-            <Input
-              {...field}
-              id={name}
-              aria-invalid={fieldState.invalid}
-              placeholder={placeholder}
-            />
-          )}
-          <FieldError errors={[fieldState.error]} />
-        </Field>
-      )}
-    />
-  )
 }
 
 function SubmitRow({
@@ -98,7 +45,13 @@ function SubmitRow({
   )
 }
 
-function MorningForm({ morning }: { morning?: MorningReport }) {
+function MorningForm({
+  morning,
+  context,
+}: {
+  morning?: MorningReport
+  context?: AiFieldContext
+}) {
   const form = useForm<MorningReportValues>({
     resolver: zodResolver(morningReportSchema),
     defaultValues: {
@@ -117,29 +70,37 @@ function MorningForm({ morning }: { morning?: MorningReport }) {
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
-        <TextField
+        <AiField
           control={form.control}
           name="priorities"
           label="Priorities"
           placeholder="One priority per line"
+          aiField="morning-priorities"
+          context={context}
         />
-        <TextField
+        <AiField
           control={form.control}
           name="plannedWork"
           label="Planned work"
           placeholder="One item per line"
+          aiField="morning-planned-work"
+          context={context}
         />
-        <TextField
+        <AiField
           control={form.control}
           name="importantTasks"
           label="Important tasks"
           placeholder="One task per line"
+          aiField="morning-important-tasks"
+          context={context}
         />
-        <TextField
+        <AiField
           control={form.control}
           name="blockers"
           label="Blockers"
           placeholder="One blocker per line"
+          aiField="morning-blockers"
+          context={context}
         />
         <FieldError errors={[form.formState.errors.root]} />
         <SubmitRow
@@ -155,7 +116,13 @@ function MorningForm({ morning }: { morning?: MorningReport }) {
   )
 }
 
-function EveningForm({ evening }: { evening?: EveningReport }) {
+function EveningForm({
+  evening,
+  context,
+}: {
+  evening?: EveningReport
+  context?: AiFieldContext
+}) {
   const form = useForm<EveningReportValues>({
     resolver: zodResolver(eveningReportSchema),
     defaultValues: {
@@ -175,36 +142,46 @@ function EveningForm({ evening }: { evening?: EveningReport }) {
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)}>
       <FieldGroup>
-        <TextField
+        <AiField
           control={form.control}
           name="completed"
           label="Completed work"
           placeholder="One item per line"
+          aiField="evening-completed"
+          context={context}
         />
-        <TextField
+        <AiField
           control={form.control}
           name="ongoing"
           label="Ongoing work"
           placeholder="One item per line"
+          aiField="evening-ongoing"
+          context={context}
         />
-        <TextField
+        <AiField
           control={form.control}
           name="pending"
           label="Pending work"
           placeholder="One item per line"
+          aiField="evening-pending"
+          context={context}
         />
-        <TextField
+        <AiField
           control={form.control}
           name="problems"
           label="Problems / blockers"
           placeholder="Any problems today"
+          aiField="evening-problems"
+          context={context}
           multiline={false}
         />
-        <TextField
+        <AiField
           control={form.control}
           name="incompleteReason"
           label="Reason for incomplete tasks"
           placeholder="Why work was not finished"
+          aiField="evening-incomplete-reason"
+          context={context}
           multiline={false}
         />
         <FieldError errors={[form.formState.errors.root]} />
@@ -224,9 +201,11 @@ function EveningForm({ evening }: { evening?: EveningReport }) {
 export function ReportForms({
   morning,
   evening,
+  context,
 }: {
   morning?: MorningReport
   evening?: EveningReport
+  context?: AiFieldContext
 }) {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
@@ -245,7 +224,7 @@ export function ReportForms({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <MorningForm morning={morning} />
+          <MorningForm morning={morning} context={context} />
         </CardContent>
       </Card>
 
@@ -264,7 +243,7 @@ export function ReportForms({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <EveningForm evening={evening} />
+          <EveningForm evening={evening} context={context} />
         </CardContent>
       </Card>
     </div>
