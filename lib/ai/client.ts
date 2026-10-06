@@ -4,7 +4,7 @@ export class AiError extends Error {}
 
 export type FetchLike = (input: string, init: RequestInit) => Promise<Response>
 
-const TIMEOUT_MS = 15_000
+export const DEFAULT_TIMEOUT_MS = 15_000
 const NOT_COMPATIBLE =
   "The endpoint did not return an OpenAI-compatible response"
 
@@ -12,7 +12,8 @@ async function request(
   url: string,
   apiKey: string,
   init: RequestInit,
-  fetchImpl: FetchLike
+  fetchImpl: FetchLike,
+  timeoutMs = DEFAULT_TIMEOUT_MS
 ): Promise<unknown> {
   let response: Response
   try {
@@ -20,7 +21,7 @@ async function request(
       ...init,
       // A redirect could point the server at an address checkEndpoint never saw.
       redirect: "error",
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
       headers: {
         ...(init.headers as Record<string, string> | undefined),
         Authorization: `Bearer ${apiKey}`,
@@ -70,14 +71,19 @@ export async function listModels(
   return [...new Set(ids)].sort()
 }
 
+export type ChatRole = "system" | "user" | "assistant"
+
+export interface ChatMessage {
+  role: ChatRole
+  content: string
+}
+
 export async function chatCompletion(
   endpoint: string,
   apiKey: string,
-  body: {
-    model: string
-    messages: { role: "system" | "user"; content: string }[]
-  },
-  fetchImpl: FetchLike = safeFetch
+  body: { model: string; messages: ChatMessage[] },
+  fetchImpl: FetchLike = safeFetch,
+  timeoutMs = DEFAULT_TIMEOUT_MS
 ): Promise<string> {
   const result = await request(
     `${endpoint}/chat/completions`,
@@ -87,7 +93,8 @@ export async function chatCompletion(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     },
-    fetchImpl
+    fetchImpl,
+    timeoutMs
   )
   const content = (
     result as { choices?: { message?: { content?: unknown } }[] } | null

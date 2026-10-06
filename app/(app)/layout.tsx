@@ -26,7 +26,7 @@ export default async function AppLayout({
         companyName={all.settings.general.companyName}
       />
       <SidebarInset className="h-svh overflow-y-auto md:h-[calc(100svh-1rem)] print:h-auto print:overflow-visible">
-        <SiteHeader />
+        <SiteHeader isMd={user.role === "MD"} />
         <div className="@container/main flex flex-auto shrink-0 flex-col gap-4 overflow-hidden p-4 md:gap-6 md:p-6">
           {children}
         </div>

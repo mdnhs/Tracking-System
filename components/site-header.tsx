@@ -4,6 +4,7 @@ import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { usePathname } from "next/navigation"
 
+import { AiChat } from "@/components/ai-chat"
 import { useTheme } from "@/components/theme-provider"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -30,7 +31,7 @@ function titleFor(pathname: string) {
   return match ? titles[match] : "TrackSys"
 }
 
-export function SiteHeader() {
+export function SiteHeader({ isMd = false }: { isMd?: boolean }) {
   const pathname = usePathname()
   const { resolvedTheme, setTheme } = useTheme()
 
@@ -46,6 +47,7 @@ export function SiteHeader() {
           {titleFor(pathname)}
         </h1>
         <div className="ml-auto flex items-center gap-2">
+          {isMd ? <AiChat /> : null}
           <Button
             variant="outline"
             size="icon"

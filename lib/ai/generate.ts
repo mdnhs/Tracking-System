@@ -1,18 +1,20 @@
-import { chatCompletion, AiError } from "@/lib/ai/client"
+import { chatCompletion, AiError, type ChatMessage } from "@/lib/ai/client"
 import { checkEndpoint } from "@/lib/ai/endpoint"
 import { decryptSecret, SecretError } from "@/lib/crypto"
 import { getSettings } from "@/lib/settings"
 
-export async function generateText(input: {
-  prompt: string
-  system?: string
-  model?: string
-}): Promise<string> {
+interface ResolvedProvider {
+  endpoint: string
+  apiKey: string
+  model: string
+}
+
+async function resolveProvider(model?: string): Promise<ResolvedProvider> {
   const { ai } = await getSettings()
   const provider = ai.providers.find((p) => p.id === ai.defaultProviderId)
   if (!provider) throw new AiError("No default AI provider is configured")
-  const model = input.model ?? provider.defaultModel
-  if (!model) throw new AiError("The default AI provider has no default model")
+  const chosen = model ?? provider.defaultModel
+  if (!chosen) throw new AiError("The default AI provider has no default model")
   if (!provider.apiKeyEncrypted) {
     throw new AiError("The default AI provider has no API key")
   }
@@ -28,7 +30,16 @@ export async function generateText(input: {
   const endpoint = await checkEndpoint(provider.endpoint)
   if (!endpoint.ok) throw new AiError(endpoint.error)
 
-  return chatCompletion(endpoint.url, apiKey, {
+  return { endpoint: endpoint.url, apiKey, model: chosen }
+}
+
+export async function generateText(input: {
+  prompt: string
+  system?: string
+  model?: string
+}): Promise<string> {
+  const { endpoint, apiKey, model } = await resolveProvider(input.model)
+  return chatCompletion(endpoint, apiKey, {
     model,
     messages: [
       ...(input.system
@@ -37,4 +48,23 @@ export async function generateText(input: {
       { role: "user" as const, content: input.prompt },
     ],
   })
+}
+
+export async function generateChat(input: {
+  system: string
+  messages: Pick<ChatMessage, "role" | "content">[]
+  model?: string
+  timeoutMs?: number
+}): Promise<string> {
+  const { endpoint, apiKey, model } = await resolveProvider(input.model)
+  return chatCompletion(
+    endpoint,
+    apiKey,
+    {
+      model,
+      messages: [{ role: "system", content: input.system }, ...input.messages],
+    },
+    undefined,
+    input.timeoutMs
+  )
 }

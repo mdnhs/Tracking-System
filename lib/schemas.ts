@@ -184,3 +184,18 @@ export const aiFieldSchema = z.object({
     .optional(),
 })
 export type AiFieldValues = z.infer<typeof aiFieldSchema>
+
+export const chatMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string().trim().min(1).max(6000),
+})
+
+export const chatRequestSchema = z
+  .object({
+    messages: z.array(chatMessageSchema).min(1).max(24),
+  })
+  .refine((v) => v.messages.at(-1)?.role === "user", {
+    path: ["messages"],
+    message: "The last message must be from the user",
+  })
+export type ChatRequestValues = z.infer<typeof chatRequestSchema>
