@@ -1,14 +1,14 @@
+import type { AppSettings, PublicSettings } from "@/lib/settings-model"
+
 export type TaskStatusKey =
   "pending" | "in-progress" | "completed" | "overdue" | "on-hold" | "cancelled"
 
 export type Priority = "high" | "medium" | "low"
 
 export interface Meta {
-  company: string
   system: string
   preparedBy: string
   date: string
-  tagline: string
   illustrative: boolean
 }
 
@@ -125,10 +125,14 @@ export interface TrackingData {
   hierarchy: HierarchyLevel[]
   employees: Employee[]
   taskStatuses: TaskStatus[]
-  delayReasons: string[]
+  settings: AppSettings
   tasks: Task[]
   dailyReports: DailyReport[]
   visibilityQuestions: VisibilityQuestion[]
   benefits: Benefit[]
   futureScalability: string[]
+}
+
+export type PublicTrackingData = Omit<TrackingData, "settings"> & {
+  settings: PublicSettings
 }

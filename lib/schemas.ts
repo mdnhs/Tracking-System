@@ -91,3 +91,69 @@ export function splitLines(value: string): string[] {
     .map((line) => line.trim())
     .filter(Boolean)
 }
+
+const httpsUrl = z
+  .string()
+  .trim()
+  .min(1, "Enter the API endpoint")
+  .refine((value) => {
+    try {
+      return new URL(value).protocol === "https:"
+    } catch {
+      return false
+    }
+  }, "The endpoint must use https://")
+
+export const generalSettingsSchema = z.object({
+  companyName: z.string().trim().min(1, "Company name is required").max(80),
+  tagline: optionalText(160),
+})
+export type GeneralSettingsValues = z.infer<typeof generalSettingsSchema>
+
+export const workflowSettingsSchema = z.object({
+  delayReasons: z
+    .array(z.string().trim().min(1, "Reason cannot be empty").max(80))
+    .min(1, "Keep at least one delay reason")
+    .refine(
+      (list) => new Set(list.map((r) => r.toLowerCase())).size === list.length,
+      "Delay reasons must be unique"
+    ),
+  attentionWindowDays: z
+    .number({ error: "Enter a whole number of days" })
+    .int("Enter a whole number of days")
+    .min(1, "At least 1 day")
+    .max(14, "At most 14 days"),
+})
+export type WorkflowSettingsValues = z.infer<typeof workflowSettingsSchema>
+
+// A short key would be shown in full by the masked hint, so blank or 8+ only.
+const apiKeyField = z
+  .string()
+  .trim()
+  .max(500)
+  .refine(
+    (value) => value === "" || value.length >= 8,
+    "API key must be at least 8 characters"
+  )
+
+export const providerSchema = z
+  .object({
+    id: z.string().optional(),
+    name: z.string().trim().min(1, "Name is required").max(40),
+    endpoint: httpsUrl,
+    apiKey: apiKeyField,
+    models: z.array(z.string().trim().min(1)).min(1, "Add at least one model"),
+    defaultModel: z.string().min(1, "Choose a default model"),
+  })
+  .refine((v) => v.models.includes(v.defaultModel), {
+    path: ["defaultModel"],
+    message: "Choose one of the selected models",
+  })
+export type ProviderValues = z.infer<typeof providerSchema>
+
+export const fetchModelsSchema = z.object({
+  providerId: z.string().optional(),
+  endpoint: httpsUrl,
+  apiKey: apiKeyField,
+})
+export type FetchModelsValues = z.infer<typeof fetchModelsSchema>

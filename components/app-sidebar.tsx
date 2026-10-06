@@ -6,6 +6,7 @@ import {
   Analytics01Icon,
   DashboardSquare01Icon,
   File01Icon,
+  Settings01Icon,
   NotebookIcon,
   Task01Icon,
   UserCircle02Icon,
@@ -28,57 +29,72 @@ import {
 import { isManagement } from "@/lib/permissions"
 import type { Employee } from "@/lib/types"
 
-const navItems = [
+type NavAccess = "all" | "management" | "md"
+
+const navItems: {
+  title: string
+  url: string
+  icon: typeof Task01Icon
+  access: NavAccess
+}[] = [
   {
     title: "Dashboard",
     url: "/dashboard",
     icon: DashboardSquare01Icon,
-    management: true,
+    access: "management",
   },
-  { title: "Tasks", url: "/tasks", icon: Task01Icon, management: false },
+  { title: "Tasks", url: "/tasks", icon: Task01Icon, access: "all" },
   {
     title: "Daily Reports",
     url: "/reports",
     icon: NotebookIcon,
-    management: true,
+    access: "management",
   },
   {
     title: "My Workspace",
     url: "/employee",
     icon: UserCircle02Icon,
-    management: false,
+    access: "all",
   },
   {
     title: "Analytics",
     url: "/analytics",
     icon: Analytics01Icon,
-    management: true,
+    access: "management",
   },
   {
     title: "Management Reports",
     url: "/overview",
     icon: File01Icon,
-    management: true,
+    access: "management",
   },
   {
     title: "Organization",
     url: "/structure",
     icon: UserGroupIcon,
-    management: false,
+    access: "all",
   },
+  { title: "Settings", url: "/settings", icon: Settings01Icon, access: "md" },
 ]
 
 export function AppSidebar({
   user,
   users,
+  companyName,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   user: Employee
   users: Employee[]
+  companyName: string
 }) {
   const management = isManagement(user)
   const items = navItems
-    .filter((item) => management || !item.management)
+    .filter(
+      (item) =>
+        item.access === "all" ||
+        (item.access === "management" && management) ||
+        (item.access === "md" && user.role === "MD")
+    )
     .map((item) =>
       management && item.url === "/employee"
         ? { ...item, title: "Employee Workspace" }
@@ -104,7 +120,7 @@ export function AppSidebar({
               <div className="grid flex-1 text-left leading-tight">
                 <span className="truncate text-sm font-semibold">TrackSys</span>
                 <span className="truncate text-xs text-muted-foreground">
-                  Security Partners Ltd
+                  {companyName}
                 </span>
               </div>
             </SidebarMenuButton>

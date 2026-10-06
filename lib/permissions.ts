@@ -75,7 +75,9 @@ export function canSetStatus(
     : canWorkOnTask(user, task, employees)
 }
 
-export function scopeData(data: TrackingData, user: Employee): TrackingData {
+type Scopable = Pick<TrackingData, "employees" | "tasks" | "dailyReports">
+
+export function scopeData<T extends Scopable>(data: T, user: Employee): T {
   const employees = data.employees.filter((e) => canSeeEmployee(user, e))
   const visible = new Set(employees.map((e) => e.id))
   return {

@@ -1,4 +1,5 @@
 import { addDays } from "@/lib/analytics"
+import { DEFAULT_ATTENTION_WINDOW_DAYS } from "@/lib/settings-model"
 import type { Task, TaskStatusKey } from "@/lib/types"
 
 const OPEN_STATUSES: TaskStatusKey[] = ["pending", "in-progress", "overdue"]
@@ -94,9 +95,10 @@ export function applyTransition(
 export function needsAttention(
   tasks: Task[],
   today: string,
+  windowDays = DEFAULT_ATTENTION_WINDOW_DAYS,
   limit = 6
 ): Task[] {
-  const soon = addDays(today, 2)
+  const soon = addDays(today, windowDays)
   return tasks
     .filter(
       (t) =>

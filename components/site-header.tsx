@@ -16,6 +16,7 @@ const titles: Record<string, string> = {
   "/employee": "My Workspace",
   "/analytics": "Visual Analytics",
   "/overview": "Management Reports",
+  "/settings": "Settings",
   "/structure": "Organization",
 }
 

@@ -54,7 +54,10 @@ function refresh() {
   revalidatePath("/", "layout")
 }
 
-function findTask(data: TrackingData, id: string): Task | undefined {
+function findTask(
+  data: Pick<TrackingData, "tasks">,
+  id: string
+): Task | undefined {
   return data.tasks.find((item) => item.id === id)
 }
 
@@ -245,7 +248,7 @@ export async function recordDelayReason(
   const ok = await mutate((data) => {
     const task = findTask(data, taskId)
     if (!task || !canWorkOnTask(user, task, data.employees)) return false
-    if (!data.delayReasons.includes(reason)) return false
+    if (!data.settings.workflow.delayReasons.includes(reason)) return false
     task.delayReason = reason
     task.delayExplanation = explanation || null
     return true

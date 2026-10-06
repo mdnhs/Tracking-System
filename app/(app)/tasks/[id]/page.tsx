@@ -259,7 +259,7 @@ export default async function TaskDetailPage({
           {canWork ? (
             <TaskActions
               task={task}
-              delayReasons={data.delayReasons}
+              delayReasons={data.settings.workflow.delayReasons}
               today={today}
               canManage={canManage}
               isAssignee={task.assignedTo === user.id}

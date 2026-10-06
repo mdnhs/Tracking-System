@@ -3,6 +3,7 @@ import { connection } from "next/server"
 import path from "path"
 
 import { todayISO } from "@/lib/format"
+import { upgradeLegacySettings } from "@/lib/settings-model"
 import { syncOverdue } from "@/lib/tasks"
 import type { DailyReport, TrackingData } from "@/lib/types"
 
@@ -27,7 +28,8 @@ async function load(): Promise<TrackingData> {
     } catch {
       state = await readJson(SEED_FILE)
     }
-    // Stores written before completedAt, dated reports and attachment files need upgrading.
+    // Stores written before completedAt, dated reports, attachment files and settings need upgrading.
+    upgradeLegacySettings(state as unknown as Record<string, unknown>)
     for (const task of state.tasks) {
       task.completedAt ??= null
       task.holdReason ??= null

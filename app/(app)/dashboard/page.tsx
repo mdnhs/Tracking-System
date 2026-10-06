@@ -28,7 +28,8 @@ export default async function DashboardPage() {
   const { data, all } = await requireManagement()
   const today = todayISO()
   const counts = countTasks(data.tasks, today)
-  const attention = needsAttention(data.tasks, today)
+  const windowDays = data.settings.workflow.attentionWindowDays
+  const attention = needsAttention(data.tasks, today, windowDays)
   const employeeName = new Map(all.employees.map((e) => [e.id, e.name]))
 
   const todayReports = reportsForDate(data.dailyReports, data.employees, today)
@@ -80,7 +81,7 @@ export default async function DashboardPage() {
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <AppHeader
-          description={`${data.meta.company} · ${data.meta.tagline}`}
+          description={`${data.settings.general.companyName} · ${data.settings.general.tagline}`}
           live
         />
         <TaskCreateSheet employees={data.employees} />
@@ -106,7 +107,7 @@ export default async function DashboardPage() {
           <CardHeader className="px-6 pt-5 pb-4">
             <CardTitle>Needs Attention</CardTitle>
             <CardDescription>
-              Overdue work, then open tasks due within two days
+              {`Overdue work, then open tasks due within ${windowDays} day${windowDays === 1 ? "" : "s"}`}
             </CardDescription>
           </CardHeader>
           <CardContent className="px-0 pb-2">

@@ -72,7 +72,7 @@ function isDelayed(task: Task, from: string, to: string): boolean {
 }
 
 export function buildOverview(
-  data: TrackingData,
+  data: Pick<TrackingData, "tasks" | "employees" | "dailyReports">,
   period: Period,
   today: string
 ): Overview {
