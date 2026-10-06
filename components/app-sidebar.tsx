@@ -9,6 +9,7 @@ import {
   Settings01Icon,
   NotebookIcon,
   Task01Icon,
+  UserAdd01Icon,
   UserCircle02Icon,
   UserGroupIcon,
 } from "@hugeicons/core-free-icons"
@@ -69,10 +70,16 @@ const navItems: {
     access: "management",
   },
   {
-    title: "Organization",
+    title: "Structure",
     url: "/structure",
     icon: UserGroupIcon,
     access: "all",
+  },
+  {
+    title: "Organization",
+    url: "/organization",
+    icon: UserAdd01Icon,
+    access: "md",
   },
   { title: "Settings", url: "/settings", icon: Settings01Icon, access: "md" },
 ]

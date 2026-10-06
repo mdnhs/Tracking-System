@@ -160,6 +160,14 @@ export const fetchModelsSchema = z.object({
 })
 export type FetchModelsValues = z.infer<typeof fetchModelsSchema>
 
+export const employeeSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().trim().min(1, "Name is required").max(80),
+  role: z.string().min(1, "Choose a role"),
+  department: z.string().trim().min(1, "Department is required").max(60),
+})
+export type EmployeeValues = z.infer<typeof employeeSchema>
+
 // Context is a hint for the prompt; long values are capped rather than rejected.
 const aiContextField = z.string().transform((value) => value.slice(0, 200))
 
