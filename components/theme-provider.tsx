@@ -1,23 +1,107 @@
 "use client"
 
 import * as React from "react"
-import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes"
 
-function ThemeProvider({
-  children,
-  ...props
-}: React.ComponentProps<typeof NextThemesProvider>) {
+export type Theme = "light" | "dark" | "system"
+export type ResolvedTheme = "light" | "dark"
+
+const STORAGE_KEY = "theme"
+
+interface ThemeContextValue {
+  theme: Theme
+  resolvedTheme: ResolvedTheme
+  setTheme: (theme: Theme) => void
+}
+
+const ThemeContext = React.createContext<ThemeContextValue | null>(null)
+
+const listeners = new Set<() => void>()
+
+function emit() {
+  listeners.forEach((listener) => listener())
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener)
+  window.addEventListener("storage", listener)
+  const media = window.matchMedia("(prefers-color-scheme: dark)")
+  media.addEventListener("change", listener)
+  return () => {
+    listeners.delete(listener)
+    window.removeEventListener("storage", listener)
+    media.removeEventListener("change", listener)
+  }
+}
+
+function systemTheme(): ResolvedTheme {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light"
+}
+
+function readStoredTheme(): Theme {
+  try {
+    const value = localStorage.getItem(STORAGE_KEY)
+    if (value === "light" || value === "dark" || value === "system") {
+      return value
+    }
+  } catch {
+    // localStorage unavailable
+  }
+  return "system"
+}
+
+function applyTheme(resolved: ResolvedTheme) {
+  const root = document.documentElement
+  root.classList.remove("light", "dark")
+  root.classList.add(resolved)
+  root.style.colorScheme = resolved
+}
+
+function useTheme() {
+  const context = React.useContext(ThemeContext)
+  if (!context) {
+    throw new Error("useTheme must be used within a ThemeProvider")
+  }
+  return context
+}
+
+function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const theme = React.useSyncExternalStore(
+    subscribe,
+    readStoredTheme,
+    () => "system" as Theme
+  )
+  const system = React.useSyncExternalStore(
+    subscribe,
+    systemTheme,
+    () => "light" as ResolvedTheme
+  )
+  const resolvedTheme: ResolvedTheme = theme === "system" ? system : theme
+
+  React.useEffect(() => {
+    applyTheme(resolvedTheme)
+  }, [resolvedTheme])
+
+  const setTheme = React.useCallback((next: Theme) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, next)
+    } catch {
+      // localStorage unavailable
+    }
+    emit()
+  }, [])
+
+  const value = React.useMemo(
+    () => ({ theme, resolvedTheme, setTheme }),
+    [theme, resolvedTheme, setTheme]
+  )
+
   return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      {...props}
-    >
+    <ThemeContext.Provider value={value}>
       <ThemeHotkey />
       {children}
-    </NextThemesProvider>
+    </ThemeContext.Provider>
   )
 }
 
@@ -68,4 +152,4 @@ function ThemeHotkey() {
   return null
 }
 
-export { ThemeProvider }
+export { ThemeProvider, useTheme }
