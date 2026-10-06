@@ -1,0 +1,16 @@
+.git
+.github
+.next
+.data
+.claude
+.superpowers
+node_modules
+docs
+tests
+coverage
+.env*
+!.env.example
+.mcp.json
+*.tsbuildinfo
+Dockerfile
+.dockerignore
