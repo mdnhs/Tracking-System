@@ -5,7 +5,7 @@ import { getSession } from "@/lib/session"
 
 export async function GET(
   _request: NextRequest,
-  ctx: RouteContext<"/tasks/[id]/attachments/[fileId]">
+  ctx: { params: Promise<{ id: string; fileId: string }> }
 ) {
   const { id, fileId } = await ctx.params
   const { data } = await getSession()
